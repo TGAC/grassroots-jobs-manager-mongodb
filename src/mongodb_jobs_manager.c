@@ -37,6 +37,12 @@
 #define MONGODB_JOBS_MANAGER_DEBUG	(STM_LEVEL_NONE)
 #endif
 
+
+static const char S_PRIMARY_KEY_S [] = "key";
+static const char S_JOB_S [] = "job";
+
+
+
 /**
  * The MongoDBJobsManager stores key value pairs. The keys are the uuids for
  * the ServiceJobs that are converted to strings. The values are the ServiceJob
@@ -166,45 +172,61 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid
 
 	if (service_p)
 		{
-			json_t *job_json_p = NULL;
+			json_t *data_p = json_object ();
 
-			ConvertUUIDToString (job_key, uuid_s);
-
-			if (DoesServiceHaveCustomServiceJobSerialisation (service_p))
+			if (data_p)
 				{
-					job_json_p = CreateSerialisedJSONForServiceJobFromService (service_p, job_p);
+					ConvertUUIDToString (job_key, uuid_s);
 
-					if (!job_json_p)
+					if (json_object_set_new (data_p, S_PRIMARY_KEY_S, json_string (uuid_s)) == 0)
 						{
-							PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to create custom serialised job for %s from %s", uuid_s, GetServiceName (service_p));
-						}
-				}
-			else
-				{
-					/* We store the c-style string for the ServiceJob's json */
-					job_json_p = GetServiceJobAsJSON (job_p);
+							json_t *job_json_p = NULL;
 
-					if (!job_json_p)
-						{
-							PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to create serialised job for %s from %s", uuid_s, GetServiceName (service_p));
-						}
-				}
+							if (DoesServiceHaveCustomServiceJobSerialisation (service_p))
+								{
+									job_json_p = CreateSerialisedJSONForServiceJobFromService (service_p, job_p);
+
+									if (!job_json_p)
+										{
+											PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to create custom serialised job for %s from %s", uuid_s, GetServiceName (service_p));
+										}
+								}
+							else
+								{
+									/* We store the c-style string for the ServiceJob's json */
+									job_json_p = GetServiceJobAsJSON (job_p);
+
+									if (!job_json_p)
+										{
+											PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to create serialised job for %s from %s", uuid_s, GetServiceName (service_p));
+										}
+								}
 
 
-			if (job_json_p)
-				{
-					const char *error_s = EasyInsertOrUpdateMongoData (manager_p -> mjm_mongo_p, job_json_p, JOB_UUID_S);
+							if (job_json_p)
+								{
+									if (json_object_set_new (data_p, S_JOB_S, job_json_p) == 0)
+										{
+											const char *error_s = EasyInsertOrUpdateMongoData (manager_p -> mjm_mongo_p, data_p, S_JOB_S);
 
-					if (error_s)
-						{
-							PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "AddServiceJobToMongoDBJobsManager failed: \"%s\" for %s from %s", error_s, uuid_s, GetServiceName (service_p));
-						}
-					else
-						{
-							success_flag = true;
-						}
+											if (error_s)
+												{
+													PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "AddServiceJobToMongoDBJobsManager failed: \"%s\" for %s from %s", error_s, uuid_s, GetServiceName (service_p));
+												}
+											else
+												{
+													success_flag = true;
+												}
 
-				}		/* if (job_json_p) */
+										}
+
+
+								}		/* if (job_json_p) */
+
+						}		/* if (json_object_set_new (data_p, S_PRIMARY_KEY_S, json_string (uuid_s)) == 0) */
+
+					json_decref (data_p);
+				}		/* if (data_p) */
 
 		}		/* if (service_p) */
 	else
@@ -241,7 +263,7 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 		{
 			ConvertUUIDToString (job_key, uuid_s);
 
-			if (json_object_set_new (query_p, JOB_UUID_S, json_string (uuid_s)) == 0)
+			if (json_object_set_new (query_p, S_PRIMARY_KEY_S, json_string (uuid_s)) == 0)
 				{
 					if (FindMatchingMongoDocumentsByJSON (mongo_tool_p, query_p, NULL))
 						{
@@ -251,15 +273,16 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 
 									if (docs_p)
 										{
+											json_t *data_p = NULL;
+
 											if (json_is_array (docs_p))
 												{
 													const size_t num_docs = json_array_size (docs_p);
 
 													if (num_docs == 1)
 														{
-															json_t *job_json_p = json_array_get (docs_p, 0);
+															data_p = json_array_get (docs_p, 0);
 
-															job_p = CreateServiceJobFromJSON (job_json_p);
 														}
 													else
 														{
@@ -268,11 +291,23 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 												}
 											else if (json_is_object (docs_p))
 												{
-													job_p = CreateServiceJobFromJSON (docs_p);
+													data_p = docs_p;
 												}
 											else
 												{
 													PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, docs_p, "Not valid object for holding ServiceJob");
+												}
+
+											if (data_p)
+												{
+													json_t *job_json_p = json_object_get (data_p, S_JOB_S);
+
+
+													if (job_json_p)
+														{
+															job_p = CreateServiceJobFromJSON (job_json_p);
+														}
+
 												}
 
 										}		/* if (docs_p) */
