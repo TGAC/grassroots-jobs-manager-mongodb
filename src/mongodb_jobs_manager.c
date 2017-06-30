@@ -181,10 +181,11 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid
 					if (json_object_set_new (data_p, S_PRIMARY_KEY_S, json_string (uuid_s)) == 0)
 						{
 							json_t *job_json_p = NULL;
+							bool omit_results_flag = true;
 
 							if (DoesServiceHaveCustomServiceJobSerialisation (service_p))
 								{
-									job_json_p = CreateSerialisedJSONForServiceJobFromService (service_p, job_p);
+									job_json_p = CreateSerialisedJSONForServiceJobFromService (service_p, job_p, omit_results_flag);
 
 									if (!job_json_p)
 										{
@@ -194,7 +195,7 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid
 							else
 								{
 									/* We store the c-style string for the ServiceJob's json */
-									job_json_p = GetServiceJobAsJSON (job_p);
+									job_json_p = GetServiceJobAsJSON (job_p, omit_results_flag);
 
 									if (!job_json_p)
 										{
