@@ -207,7 +207,7 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid
 								{
 									if (json_object_set_new (data_p, S_JOB_S, job_json_p) == 0)
 										{
-											const char *error_s = EasyInsertOrUpdateMongoData (manager_p -> mjm_mongo_p, data_p, S_JOB_S);
+											const char *error_s = EasyInsertOrUpdateMongoData (manager_p -> mjm_mongo_p, data_p, S_PRIMARY_KEY_S);
 
 											if (error_s)
 												{
