@@ -11,15 +11,21 @@ The files to build the MongoDB Jobs Manager are in the ```build/<platform>``` di
 
 If you enter this directory 
 
-```cd build/linux```
+```
+cd build/linux
+```
 
 you can then build the service by typing
 
-```make all```
+```
+make all
+```
 
 and then 
 
-```make install```
+```
+make install
+```
 
 to install the manager into the Grassroots system.
 
