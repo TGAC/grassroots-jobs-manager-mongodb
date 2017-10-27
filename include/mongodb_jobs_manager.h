@@ -93,9 +93,23 @@ extern "C"
 #endif
 
 
+/**
+ * The callback function for allocating a MongoDBJobsManager.
+ *
+ * @return The newly-allocated MongoDBJobsManager
+ * or <code>NULL</code> upon error.
+ * @memberof MongoDBJobsManager
+ */
 MONGODB_JOBS_MANAGER_API JobsManager *GetCustomJobsManager (void);
 
 
+/**
+ * The callback function for freeing the MongoDBJobsManager.
+ *
+ * This will call FreeMongoDBJobsManager().
+ * @param manager_p The MongoDBJobsManager to free.
+ * @memberof MongoDBJobsManager
+ */
 MONGODB_JOBS_MANAGER_API void ReleaseJobsManager (JobsManager *manager_p);
 
 
@@ -112,6 +126,8 @@ MONGODB_JOBS_MANAGER_LOCAL MongoDBJobsManager *AllocateMongoDBJobsManager (void)
  * @brief Free a MongoDBJobsManager.
  *
  * @param manager_p The MongoDBJobsManager to free.
+ * @return <code>true</code> if the MongoDBJobsManager was freed successfully,
+ * <code>false</code> otherwise
  * @memberof MongoDBJobsManager
  */
 MONGODB_JOBS_MANAGER_LOCAL bool FreeMongoDBJobsManager (JobsManager *manager_p);
