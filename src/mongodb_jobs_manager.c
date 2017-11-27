@@ -311,6 +311,7 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 
 												}
 
+											json_decref (docs_p);
 										}		/* if (docs_p) */
 									else
 										{
@@ -342,9 +343,6 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 		{
 			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to create query to locate ServiceJob");
 		}
-
-
-
 
 	return job_p;
 }
