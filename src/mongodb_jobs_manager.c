@@ -162,13 +162,14 @@ bool FreeMongoDBJobsManager (JobsManager *manager_p)
 
 
 
-static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid_t job_key, ServiceJob  *job_p)
+static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid_t job_key, ServiceJob *job_p)
 {
 	MongoDBJobsManager *manager_p = (MongoDBJobsManager *) jobs_manager_p;
 	bool success_flag = false;
 	char uuid_s [UUID_STRING_BUFFER_SIZE];
-
 	Service *service_p = GetServiceFromServiceJob (job_p);
+
+	ConvertUUIDToString (job_key, uuid_s);
 
 	if (service_p)
 		{
@@ -176,8 +177,6 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid
 
 			if (data_p)
 				{
-					ConvertUUIDToString (job_key, uuid_s);
-
 					if (json_object_set_new (data_p, S_PRIMARY_KEY_S, json_string (uuid_s)) == 0)
 						{
 							json_t *job_json_p = NULL;
@@ -216,6 +215,15 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid
 												}
 											else
 												{
+													#if MONGODB_JOBS_MANAGER_DEBUG >= STM_LEVEL_FINER
+														{
+															char uuid_s [UUID_STRING_BUFFER_SIZE];
+
+															ConvertUUIDToString (job_p -> sj_id, uuid_s);
+															PrintLog (STM_LEVEL_FINER, __FILE__, __LINE__, "Added job %s with id %s to jobs manager", job_p -> sj_name_s, uuid_s);
+														}
+													#endif
+
 													success_flag = true;
 												}
 
@@ -283,11 +291,10 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 													if (num_docs == 1)
 														{
 															data_p = json_array_get (docs_p, 0);
-
 														}
 													else
 														{
-
+															PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, docs_p, "Found " SIZET_FMT " docs for %", num_docs, uuid_s);
 														}
 												}
 											else if (json_is_object (docs_p))
@@ -352,11 +359,7 @@ static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager *
 {
 	LinkedList *jobs_p = AllocateLinkedList (FreeServiceJobNode);
 
-	if (jobs_p)
-		{
-
-		}		/* if (jobs_p) */
-	else
+	if (!jobs_p)
 		{
 			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to create list for all ServiceJobs");
 		}
