@@ -64,6 +64,9 @@ static ServiceJob *RemoveServiceJobFromMongoDBJobsManager (JobsManager *manager_
 static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager *manager_p);
 
 
+static MongoTool *GetConfiguredMongoTool (void);
+
+
 /**************************/
 
 
@@ -87,65 +90,23 @@ void ReleaseJobsManager (JobsManager *manager_p)
 
 
 
+
+
+
 MongoDBJobsManager *AllocateMongoDBJobsManager (void)
 {
-	MongoTool *tool_p = AllocateMongoTool ();
+	MongoDBJobsManager *manager_p = (MongoDBJobsManager *) AllocMemory (sizeof (MongoDBJobsManager));
 
-	if (tool_p)
+	if (manager_p)
 		{
-			const char *database_s = "grassroots";
-			const char *collection_s = "jobs";
-			const json_t *config_p  = GetGlobalConfigValue ("mongodb_jobs_manager");
-
-			if (config_p)
-				{
-					const char *value_s = GetJSONString (config_p, "database");
-
-					if (value_s)
-						{
-							database_s = value_s;
-						}
-
-					value_s = GetJSONString (config_p, "collection");
-
-					if (value_s)
-						{
-							collection_s = value_s;
-						}
-				}
-
-			if (SetMongoToolCollection (tool_p, database_s, collection_s))
-				{
-					MongoDBJobsManager *manager_p = (MongoDBJobsManager *) AllocMemory (sizeof (MongoDBJobsManager));
-
-					if (manager_p)
-						{
-							manager_p -> mjm_mongo_p = tool_p;
-
-							InitJobsManager (& (manager_p -> mjm_base_manager), AddServiceJobToMongoDBJobsManager, GetServiceJobFromMongoDBJobsManager, RemoveServiceJobFromMongoDBJobsManager, GetAllServiceJobsFromMongoDBJobsManager, FreeMongoDBJobsManager);
-
-							return manager_p;
-						}
-					else
-						{
-							PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate memory for MongoDBJobsManager");
-						}
-
-				}		/* if (SetMongoToolCollection (tool_p, database_s, collection_s)) */
-			else
-				{
-					PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to SetMongoToolCollection to database \"%s\" collection \"%s\"", database_s, collection_s);
-				}
-
-			FreeMongoTool (tool_p);
-		}		/* if (tool_p) */
+			InitJobsManager (& (manager_p -> mjm_base_manager), AddServiceJobToMongoDBJobsManager, GetServiceJobFromMongoDBJobsManager, RemoveServiceJobFromMongoDBJobsManager, GetAllServiceJobsFromMongoDBJobsManager, FreeMongoDBJobsManager);
+		}
 	else
 		{
-			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate memory for MongoDBJobsManager MongoTool");
+			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate memory for MongoDBJobsManager");
 		}
 
-
-	return NULL;
+	return manager_p;
 }
 
 
@@ -154,7 +115,6 @@ bool FreeMongoDBJobsManager (JobsManager *manager_p)
 {
 	MongoDBJobsManager *mongodb_manager_p = (MongoDBJobsManager *) manager_p;
 
-	FreeMongoTool (mongodb_manager_p -> mjm_mongo_p);
 	FreeMemory (mongodb_manager_p);
 
 	return true;
@@ -162,9 +122,8 @@ bool FreeMongoDBJobsManager (JobsManager *manager_p)
 
 
 
-static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid_t job_key, ServiceJob *job_p)
+static bool AddServiceJobToMongoDBJobsManager (JobsManager * UNUSED_PARAM (jobs_manager_p), uuid_t job_key, ServiceJob *job_p)
 {
-	MongoDBJobsManager *manager_p = (MongoDBJobsManager *) jobs_manager_p;
 	bool success_flag = false;
 	char uuid_s [UUID_STRING_BUFFER_SIZE];
 	Service *service_p = GetServiceFromServiceJob (job_p);
@@ -207,28 +166,36 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager *jobs_manager_p, uuid
 								{
 									if (json_object_set_new (data_p, S_JOB_S, job_json_p) == 0)
 										{
-											const char *error_s = EasyInsertOrUpdateMongoData (manager_p -> mjm_mongo_p, data_p, S_PRIMARY_KEY_S);
+											MongoTool *tool_p = GetConfiguredMongoTool ();
 
-											if (error_s)
+											if (tool_p)
 												{
-													PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "AddServiceJobToMongoDBJobsManager failed: \"%s\" for %s from %s", error_s, uuid_s, GetServiceName (service_p));
-												}
+													const char *error_s = EasyInsertOrUpdateMongoData (tool_p, data_p, S_PRIMARY_KEY_S);
+
+													if (error_s)
+														{
+															PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "AddServiceJobToMongoDBJobsManager failed: \"%s\" for %s from %s", error_s, uuid_s, GetServiceName (service_p));
+														}
+													else
+														{
+															#if MONGODB_JOBS_MANAGER_DEBUG >= STM_LEVEL_FINER
+																{
+																	ConvertUUIDToString (job_p -> sj_id, uuid_s);
+																	PrintLog (STM_LEVEL_FINER, __FILE__, __LINE__, "Added job %s with id %s to jobs manager", job_p -> sj_name_s, uuid_s);
+																}
+															#endif
+
+															success_flag = true;
+														}
+
+													FreeMongoTool (tool_p);
+												}		/* if (tool_p) */
 											else
 												{
-													#if MONGODB_JOBS_MANAGER_DEBUG >= STM_LEVEL_FINER
-														{
-															char uuid_s [UUID_STRING_BUFFER_SIZE];
-
-															ConvertUUIDToString (job_p -> sj_id, uuid_s);
-															PrintLog (STM_LEVEL_FINER, __FILE__, __LINE__, "Added job %s with id %s to jobs manager", job_p -> sj_name_s, uuid_s);
-														}
-													#endif
-
-													success_flag = true;
+													PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "GetConfiguredMongoTool failed");
 												}
 
 										}
-
 
 								}		/* if (job_json_p) */
 
@@ -260,10 +227,8 @@ static ServiceJob *RemoveServiceJobFromMongoDBJobsManager (JobsManager *manager_
 }
 
 
-static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_manager_p, const uuid_t job_key, bool get_job_flag, bool remove_job_flag)
+static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager * UNUSED_PARAM (jobs_manager_p), const uuid_t job_key, bool get_job_flag, bool remove_job_flag)
 {
-	MongoDBJobsManager *manager_p = (MongoDBJobsManager *) jobs_manager_p;
-	MongoTool *mongo_tool_p = manager_p -> mjm_mongo_p;
 	ServiceJob *job_p = NULL;
 	char uuid_s [UUID_STRING_BUFFER_SIZE];
 	json_t *query_p = json_object ();
@@ -274,68 +239,79 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 
 			if (json_object_set_new (query_p, S_PRIMARY_KEY_S, json_string (uuid_s)) == 0)
 				{
-					if (FindMatchingMongoDocumentsByJSON (mongo_tool_p, query_p, NULL))
+					MongoTool *mongo_tool_p = GetConfiguredMongoTool ();
+
+					if (mongo_tool_p)
 						{
-							if (get_job_flag)
+							if (FindMatchingMongoDocumentsByJSON (mongo_tool_p, query_p, NULL))
 								{
-									json_t *docs_p = GetAllExistingMongoResultsAsJSON (mongo_tool_p);
-
-									if (docs_p)
+									if (get_job_flag)
 										{
-											json_t *data_p = NULL;
+											json_t *docs_p = GetAllExistingMongoResultsAsJSON (mongo_tool_p);
 
-											if (json_is_array (docs_p))
+											if (docs_p)
 												{
-													const size_t num_docs = json_array_size (docs_p);
+													json_t *data_p = NULL;
 
-													if (num_docs == 1)
+													if (json_is_array (docs_p))
 														{
-															data_p = json_array_get (docs_p, 0);
+															const size_t num_docs = json_array_size (docs_p);
+
+															if (num_docs == 1)
+																{
+																	data_p = json_array_get (docs_p, 0);
+																}
+															else
+																{
+																	PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, docs_p, "Found " SIZET_FMT " docs for %", num_docs, uuid_s);
+																}
+														}
+													else if (json_is_object (docs_p))
+														{
+															data_p = docs_p;
 														}
 													else
 														{
-															PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, docs_p, "Found " SIZET_FMT " docs for %", num_docs, uuid_s);
+															PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, docs_p, "Not valid object for holding ServiceJob");
 														}
-												}
-											else if (json_is_object (docs_p))
-												{
-													data_p = docs_p;
-												}
+
+													if (data_p)
+														{
+															json_t *job_json_p = json_object_get (data_p, S_JOB_S);
+
+
+															if (job_json_p)
+																{
+																	job_p = CreateServiceJobFromJSON (job_json_p);
+																}
+
+														}
+
+													json_decref (docs_p);
+												}		/* if (docs_p) */
 											else
 												{
-													PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, docs_p, "Not valid object for holding ServiceJob");
+													PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, query_p, "Could not find any matching ServiceJobs");
 												}
 
-											if (data_p)
-												{
-													json_t *job_json_p = json_object_get (data_p, S_JOB_S);
+										}		/* if (get_job_flag) */
 
-
-													if (job_json_p)
-														{
-															job_p = CreateServiceJobFromJSON (job_json_p);
-														}
-
-												}
-
-											json_decref (docs_p);
-										}		/* if (docs_p) */
-									else
+									if (remove_job_flag)
 										{
-											PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, query_p, "Could not find any matching ServiceJobs");
+											RemoveMongoDocuments (mongo_tool_p, query_p, false);
 										}
 
-								}		/* if (get_job_flag) */
-
-							if (remove_job_flag)
+								}		/* if (FindMatchingMongoDocumentsByJSON (mongo_tool_p, query_p, NULL)) */
+							else
 								{
-									RemoveMongoDocuments (mongo_tool_p, query_p, false);
+									PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, query_p, "Failed to find ServiceJob matching the given query");
 								}
 
-						}		/* if (FindMatchingMongoDocumentsByJSON (mongo_tool_p, query_p, NULL)) */
+							FreeMongoTool (mongo_tool_p);
+						}		/* if (mongo_tool_p) */
 					else
 						{
-							PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, query_p, "Failed to find ServiceJob matching the given query");
+							PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "GetConfiguredMongoTool failed");
 						}
 
 				}		/* if (json_object_set_new (query_p, JOB_UUID_S, uuid_s) == 0) */
@@ -355,7 +331,7 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 }
 
 
-static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager *manager_p)
+static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager * UNUSED_PARAM (manager_p))
 {
 	LinkedList *jobs_p = AllocateLinkedList (FreeServiceJobNode);
 
@@ -365,6 +341,50 @@ static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager *
 		}
 
 	return jobs_p;
+}
+
+
+static MongoTool *GetConfiguredMongoTool (void)
+{
+	MongoTool *tool_p = AllocateMongoTool ();
+
+	if (tool_p)
+		{
+			const char *database_s = "grassroots";
+			const char *collection_s = "jobs";
+			const json_t *config_p  = GetGlobalConfigValue ("mongodb_jobs_manager");
+
+			if (config_p)
+				{
+					const char *value_s = GetJSONString (config_p, "database");
+
+					if (value_s)
+						{
+							database_s = value_s;
+						}
+
+					value_s = GetJSONString (config_p, "collection");
+
+					if (value_s)
+						{
+							collection_s = value_s;
+						}
+				}
+
+			if (!SetMongoToolCollection (tool_p, database_s, collection_s))
+				{
+					PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to set MongoDJobsManager tool to database \"%s\" and collection \"%s\"", database_s, collection_s);
+					FreeMongoTool (tool_p);
+					tool_p = NULL;
+				}
+
+		}		/* if (tool_p) */
+	else
+		{
+			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate MongoDJobsManager tool");
+		}
+
+	return tool_p;
 }
 
 

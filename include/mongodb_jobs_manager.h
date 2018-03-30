@@ -77,11 +77,6 @@ typedef struct MongoDBJobsManager
 	/** The base JobsManager */
 	JobsManager mjm_base_manager;
 
-	/**
-	 * The MongoTool to connect to the
-	 * MongoDB collection we will use.
-	 */
-	MongoTool *mjm_mongo_p;
 } MongoDBJobsManager;
 
 
