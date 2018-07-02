@@ -216,14 +216,36 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager * UNUSED_PARAM (jobs_
 
 static ServiceJob *GetServiceJobFromMongoDBJobsManager (JobsManager *manager_p, const uuid_t job_key)
 {
-	return QueryServiceJobFromMongoDBJobsManager (manager_p, job_key, true, false);
+	ServiceJob *job_p = QueryServiceJobFromMongoDBJobsManager (manager_p, job_key, true, false);
+
+	#if MONGODB_JOBS_MANAGER_DEBUG >= STM_LEVEL_FINER
+		{
+			char uuid_s [UUID_STRING_BUFFER_SIZE];
+			ConvertUUIDToString (job_key, uuid_s);
+
+			PrintLog (STM_LEVEL_FINER, __FILE__, __LINE__, "GetServiceJobFromMongoDBJobsManager with id %s %s", uuid_s, job_p ? "succeeded" : "failed");
+		}
+	#endif
+
+	return job_p;
 }
 
 
 
 static ServiceJob *RemoveServiceJobFromMongoDBJobsManager (JobsManager *manager_p, const uuid_t job_key, bool get_job_flag)
 {
-	return QueryServiceJobFromMongoDBJobsManager (manager_p, job_key, get_job_flag, true);
+	ServiceJob *job_p = QueryServiceJobFromMongoDBJobsManager (manager_p, job_key, get_job_flag, true);
+
+	#if MONGODB_JOBS_MANAGER_DEBUG >= STM_LEVEL_FINER
+		{
+			char uuid_s [UUID_STRING_BUFFER_SIZE];
+			ConvertUUIDToString (job_key, uuid_s);
+
+			PrintLog (STM_LEVEL_FINER, __FILE__, __LINE__, "RemoveServiceJobFromMongoDBJobsManager with id %s %s", uuid_s, job_p ? "succeeded" : "failed");
+		}
+	#endif
+
+	return job_p;
 }
 
 
