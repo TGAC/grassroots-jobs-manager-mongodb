@@ -1,4 +1,4 @@
-﻿# MongoDB Jobs Manager {#mongo_jobs_manager_guide}
+﻿# MongoDB Jobs Manager {#mongodb_jobs_manager_guide}
 
 
 ## Installation
