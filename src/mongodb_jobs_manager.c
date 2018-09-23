@@ -368,7 +368,7 @@ static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager *
 
 static MongoTool *GetConfiguredMongoTool (void)
 {
-	MongoTool *tool_p = AllocateMongoTool ();
+	MongoTool *tool_p = AllocateMongoTool (NULL);
 
 	if (tool_p)
 		{
