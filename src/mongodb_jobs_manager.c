@@ -393,7 +393,7 @@ static MongoTool *GetConfiguredMongoTool (void)
 						}
 				}
 
-			if (!SetMongoToolCollection (tool_p, database_s, collection_s))
+			if (!SetMongoToolDatabaseAndCollection (tool_p, database_s, collection_s))
 				{
 					PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to set MongoDJobsManager tool to database \"%s\" and collection \"%s\"", database_s, collection_s);
 					FreeMongoTool (tool_p);
