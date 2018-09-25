@@ -265,7 +265,7 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager * UNUSED_P
 
 					if (mongo_tool_p)
 						{
-							if (FindMatchingMongoDocumentsByJSON (mongo_tool_p, query_p, NULL))
+							if (FindMatchingMongoDocumentsByJSON (mongo_tool_p, query_p, NULL, NULL))
 								{
 									if (get_job_flag)
 										{
