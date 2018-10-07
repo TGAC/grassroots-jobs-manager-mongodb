@@ -21,9 +21,9 @@
  */
 
 
-#include "jobs_manager.h"
-
 #include "mongodb_jobs_manager.h"
+
+#include "jobs_manager.h"
 
 #include "service_job.h"
 #include "string_utils.h"
