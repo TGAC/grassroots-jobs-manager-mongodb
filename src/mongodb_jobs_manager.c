@@ -249,7 +249,7 @@ static ServiceJob *RemoveServiceJobFromMongoDBJobsManager (JobsManager *manager_
 }
 
 
-static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager * UNUSED_PARAM (jobs_manager_p), const uuid_t job_key, bool get_job_flag, bool remove_job_flag)
+static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_manager_p, const uuid_t job_key, bool get_job_flag, bool remove_job_flag)
 {
 	ServiceJob *job_p = NULL;
 	char uuid_s [UUID_STRING_BUFFER_SIZE];
@@ -304,7 +304,9 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager * UNUSED_P
 
 															if (job_json_p)
 																{
-																	job_p = CreateServiceJobFromJSON (job_json_p);
+																	GrassrootsServer *grassroots_p = GetGrassrootsServerFromJobsManager (jobs_manager_p);
+
+																	job_p = CreateServiceJobFromJSON (job_json_p, grassroots_p);
 																}
 
 														}
