@@ -28,7 +28,7 @@
 #include "service_job.h"
 #include "string_utils.h"
 #include "memory_allocations.h"
-#include "grassroots_config.h"
+#include "grassroots_server.h"
 
 
 #ifdef _DEBUG
@@ -64,7 +64,7 @@ static ServiceJob *RemoveServiceJobFromMongoDBJobsManager (JobsManager *manager_
 static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager *manager_p);
 
 
-static MongoTool *GetConfiguredMongoTool (void);
+static MongoTool *GetConfiguredMongoTool (GrassrootsServer *grassroots_p);
 
 
 /**************************/
@@ -166,7 +166,8 @@ static bool AddServiceJobToMongoDBJobsManager (JobsManager * UNUSED_PARAM (jobs_
 								{
 									if (json_object_set_new (data_p, S_JOB_S, job_json_p) == 0)
 										{
-											MongoTool *tool_p = GetConfiguredMongoTool ();
+											GrassrootsServer *grassroots_p = GetGrassrootsServerFromService (job_p -> sj_service_p);
+											MongoTool *tool_p = GetConfiguredMongoTool (grassroots_p);
 
 											if (tool_p)
 												{
@@ -261,7 +262,8 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 
 			if (json_object_set_new (query_p, S_PRIMARY_KEY_S, json_string (uuid_s)) == 0)
 				{
-					MongoTool *mongo_tool_p = GetConfiguredMongoTool ();
+					GrassrootsServer *grassroots_p = GetGrassrootsServerFromJobsManager (jobs_manager_p);
+					MongoTool *mongo_tool_p = GetConfiguredMongoTool (grassroots_p);
 
 					if (mongo_tool_p)
 						{
@@ -368,7 +370,7 @@ static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager *
 }
 
 
-static MongoTool *GetConfiguredMongoTool (void)
+static MongoTool *GetConfiguredMongoTool (GrassrootsServer *grassroots_p)
 {
 	MongoTool *tool_p = AllocateMongoTool (NULL);
 
@@ -376,7 +378,7 @@ static MongoTool *GetConfiguredMongoTool (void)
 		{
 			const char *database_s = "grassroots";
 			const char *collection_s = "jobs";
-			const json_t *config_p  = GetGlobalConfigValue ("mongodb_jobs_manager");
+			const json_t *config_p  = GetGlobalConfigValue (grassroots_p, "mongodb_jobs_manager");
 
 			if (config_p)
 				{
