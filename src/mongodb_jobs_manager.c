@@ -306,8 +306,6 @@ static ServiceJob *QueryServiceJobFromMongoDBJobsManager (JobsManager *jobs_mana
 
 															if (job_json_p)
 																{
-																	GrassrootsServer *grassroots_p = GetGrassrootsServerFromJobsManager (jobs_manager_p);
-
 																	job_p = CreateServiceJobFromJSON (job_json_p, grassroots_p);
 																}
 
@@ -372,7 +370,7 @@ static LinkedList *GetAllServiceJobsFromMongoDBJobsManager (struct JobsManager *
 
 static MongoTool *GetConfiguredMongoTool (GrassrootsServer *grassroots_p)
 {
-	MongoTool *tool_p = AllocateMongoTool (NULL);
+	MongoTool *tool_p = AllocateMongoTool (NULL, grassroots_p -> gs_mongo_manager_p);
 
 	if (tool_p)
 		{
@@ -399,7 +397,7 @@ static MongoTool *GetConfiguredMongoTool (GrassrootsServer *grassroots_p)
 
 			if (!SetMongoToolDatabaseAndCollection (tool_p, database_s, collection_s))
 				{
-					PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to set MongoDJobsManager tool to database \"%s\" and collection \"%s\"", database_s, collection_s);
+					PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to set MongoJobsManager tool to database \"%s\" and collection \"%s\"", database_s, collection_s);
 					FreeMongoTool (tool_p);
 					tool_p = NULL;
 				}
@@ -407,7 +405,7 @@ static MongoTool *GetConfiguredMongoTool (GrassrootsServer *grassroots_p)
 		}		/* if (tool_p) */
 	else
 		{
-			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate MongoDJobsManager tool");
+			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate MongoJobsManager tool");
 		}
 
 	return tool_p;
