@@ -25,43 +25,13 @@
  *      Author: tyrrells
  */
 
-#ifndef APR_JOBS_MANAGER_H_
-#define APR_JOBS_MANAGER_H_
+#ifndef MONGODB_JOBS_MANAGER_H_
+#define MONGODB_JOBS_MANAGER_H_
 
 
 #include "mongodb_jobs_manager_library.h"
 #include "jobs_manager.h"
 #include "mongodb_tool.h"
-
-
-/*
- * The following preprocessor macros allow us to declare
- * and define the variables in the same place. By default,
- * they will expand to
- *
- * 		extern const char *SERVICE_NAME_S;
- *
- * however if ALLOCATE_JSON_TAGS is defined then it will
- * become
- *
- * 		const char *SERVICE_NAME_S = "path";
- *
- * ALLOCATE_RESOURCE_TAGS must be defined only once prior to
- * including this header file. Currently this happens in
- * resource.c.
- */
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
-#ifdef ALLOCATE_APR_JOBS_MANAGER_TAGS
-	#define APR_JOBS_MANAGER_PREFIX
-	#define APR_JOBS_MANAGER_VAL(x)	= x
-#else
-	#define APR_JOBS_MANAGER_PREFIX extern
-	#define APR_JOBS_MANAGER_VAL(x)
-#endif
-
-#endif 		/* #ifndef DOXYGEN_SHOULD_SKIP_THIS */
 
 
 
@@ -132,4 +102,4 @@ MONGODB_JOBS_MANAGER_LOCAL bool FreeMongoDBJobsManager (JobsManager *manager_p);
 }
 #endif
 
-#endif /* APR_JOBS_MANAGER_H_ */
+#endif /* MONGODB_JOBS_MANAGER_H_ */
