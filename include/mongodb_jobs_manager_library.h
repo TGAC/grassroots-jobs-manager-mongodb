@@ -30,7 +30,7 @@
 */
 
 #ifdef SHARED_LIBRARY /* defined if LIB is compiled as a DLL */
-  #ifdef MONGODB_JOBS_MANAGER_REST_LIBRARY_EXPORTS /* defined if we are building the LIB DLL (instead of using it) */
+  #ifdef MONGODB_JOBS_MANAGER_EXPORTS /* defined if we are building the LIB DLL (instead of using it) */
     #define MONGODB_JOBS_MANAGER_API LIB_HELPER_SYMBOL_EXPORT
   #else
     #define MONGODB_JOBS_MANAGER_API LIB_HELPER_SYMBOL_IMPORT

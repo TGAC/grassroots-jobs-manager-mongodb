@@ -29,6 +29,7 @@
 #include "string_utils.h"
 #include "memory_allocations.h"
 #include "grassroots_server.h"
+#include "uuid_util.h"
 
 
 #ifdef _DEBUG
