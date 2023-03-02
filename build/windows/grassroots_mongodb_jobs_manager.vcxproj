@@ -116,6 +116,9 @@
       <AdditionalLibraryDirectories>$(DIR_GRASSROOTS_MONGODB_LIB);$(DIR_GRASSROOTS_SERVICES_LIB);$(DIR_GRASSROOTS_SERVER_LIB);$(DIR_GRASSROOTS_UUID_LIB);$(DIR_GRASSROOTS_UTIL_LIB);$(DIR_JANSSON_LIB);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(JANSSON_LIB_NAME);$(GRASSROOTS_UTIL_LIB_NAME);$(GRASSROOTS_MONGODB_LIB_NAME);$(GRASSROOTS_SERVER_LIB_NAME);$(GRASSROOTS_SERVICES_LIB_NAME);$(GRASSROOTS_UUID_LIB_NAME);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) $(DIR_GRASSROOTS_INSTALL)\servers\$(Platform)\$(Configuration)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -135,6 +138,9 @@
       <AdditionalLibraryDirectories>$(DIR_GRASSROOTS_MONGODB_LIB);$(DIR_GRASSROOTS_SERVICES_LIB);$(DIR_GRASSROOTS_SERVER_LIB);$(DIR_GRASSROOTS_UUID_LIB);$(DIR_GRASSROOTS_UTIL_LIB);$(DIR_JANSSON_LIB);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(JANSSON_LIB_NAME);$(GRASSROOTS_UTIL_LIB_NAME);$(GRASSROOTS_MONGODB_LIB_NAME);$(GRASSROOTS_SERVER_LIB_NAME);$(GRASSROOTS_SERVICES_LIB_NAME);$(GRASSROOTS_UUID_LIB_NAME);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) $(DIR_GRASSROOTS_INSTALL)\servers\$(Platform)\$(Configuration)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -150,6 +156,9 @@
       <AdditionalLibraryDirectories>$(DIR_GRASSROOTS_MONGODB_LIB);$(DIR_GRASSROOTS_SERVICES_LIB);$(DIR_GRASSROOTS_SERVER_LIB);$(DIR_GRASSROOTS_UUID_LIB);$(DIR_GRASSROOTS_UTIL_LIB);$(DIR_JANSSON_LIB);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(JANSSON_LIB_NAME);$(GRASSROOTS_UTIL_LIB_NAME);$(GRASSROOTS_MONGODB_LIB_NAME);$(GRASSROOTS_SERVER_LIB_NAME);$(GRASSROOTS_SERVICES_LIB_NAME);$(GRASSROOTS_UUID_LIB_NAME);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) $(DIR_GRASSROOTS_INSTALL)\servers\$(Platform)\$(Configuration)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -169,6 +178,9 @@
       <AdditionalLibraryDirectories>$(DIR_GRASSROOTS_MONGODB_LIB);$(DIR_GRASSROOTS_SERVICES_LIB);$(DIR_GRASSROOTS_SERVER_LIB);$(DIR_GRASSROOTS_UUID_LIB);$(DIR_GRASSROOTS_UTIL_LIB);$(DIR_JANSSON_LIB);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(JANSSON_LIB_NAME);$(GRASSROOTS_UTIL_LIB_NAME);$(GRASSROOTS_MONGODB_LIB_NAME);$(GRASSROOTS_SERVER_LIB_NAME);$(GRASSROOTS_SERVICES_LIB_NAME);$(GRASSROOTS_UUID_LIB_NAME);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) $(DIR_GRASSROOTS_INSTALL)\servers\$(Platform)\$(Configuration)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\mongodb_jobs_manager.c" />
